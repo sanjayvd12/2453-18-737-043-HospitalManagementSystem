@@ -17,16 +17,16 @@ MongoClient.connect(url,{useUnifiedTopology:true} , (err,client)=>{
     console.log(`Connected MongoDB: ${url}`)
     console.log(`Database: ${dbName}`)
 })
-app.get('/hospitalDetails', middleware.checkToken , function(req,res){
-    console.log("Fetching data from Hospital Collections");
+app.get('/hospitalInfo', middleware.checkToken , function(req,res){
+    console.log("Gathering Hospital Information");
     var data=db.collection('hosp_info').find().toArray().then(result=>res.json(result));
 });
-app.get('/ventilatorDetails', middleware.checkToken ,function(req,res){
-    console.log("Fetching data from Ventilators Collections ");
+app.get('/ventilatorInfo', middleware.checkToken ,function(req,res){
+    console.log("Gathering Ventilators Information ");
     var data=db.collection('vent_info').find().toArray().then(result=>res.json(result));
 }
 );
-app.post('/searchventbystatus', middleware.checkToken ,(req,res)=>{
+app.post('/searchventilatorbystatus', middleware.checkToken ,(req,res)=>{    //searches ventilator by status
 
     console.log(req.body.status)
     var ventilatordetail=db.collection('vent_info').find({"status":req.body.status}).toArray().then(result => res.json(result))
@@ -38,21 +38,21 @@ app.post(`/searchventilatorbyname`,middleware.checkToken ,function(req,res){    
     console.log(name);
     var ventilatorDetails=db.collection('vent_info').find({'name':new RegExp(name,'i')}).toArray().then(result=>res.json(result));
 });
-app.post(`/searchhospital`, middleware.checkToken ,function(req,res){
+app.post(`/searchhospitalbyname`, middleware.checkToken ,function(req,res){
     var name=req.query.name;
     console.log(name);
     var hospitalDetails=db.collection('hosp_info').find({'name':new RegExp(name,'i')}).toArray().then(result=>res.json(result));
 });
-app.put(`/updateventilator`, middleware.checkToken ,function(req,res){     //updates the ventilator status
+app.put(`/reviseventilatorstatus`, middleware.checkToken ,function(req,res){     //updates the ventilator status
     var vid={ventid:req.body.ventid};
     console.log(vid);
     var newvalues={$set:{status:req.body.status}};
     db.collection("vent_info").updateOne(vid,newvalues,function(err,result){
-        res.json('one document updated');
+        res.json('ventilator status updated');
         if(err)throw err;
     });
 });
-app.post(`/addventilatorbyuser`,middleware.checkToken ,function(req,res){     //adds a whole new ventilator for the hospital
+app.post(`/addventilator`,middleware.checkToken ,function(req,res){     //adds a whole new ventilator for the hospital
     var hID=req.body.hospid;
     var ventilatorID=req.body.ventid;
     var status=req.body.status;
@@ -61,18 +61,18 @@ app.post(`/addventilatorbyuser`,middleware.checkToken ,function(req,res){     //
         hospid:hID,ventid:ventilatorID,status:status,name:name
     };
     db.collection('vent_info').insertOne(item,function(err,result){
-        res.json('Item has been inserted');
+        res.json('A new ventilator has been added');
     });
 });
-app.delete('/deletevent',middleware.checkToken ,function(req,res){     //deletes ventilator details of a hospital
-    console.log("Deleting ventilator details...");
+app.delete('/deleteventilator',middleware.checkToken ,function(req,res){     //deletes ventilator details of a hospital
+    console.log("Deleting ventilator details");
     var d=req.query.ventid;
     db.collection('vent_info',function(err,collection){
         var q={ventid:d};
     collection.deleteOne(q,function(err,items){
     if (err) throw err;
-    console.log("1 ventilator deleted..");   
-    res.end("1 ventilator deleted..") ;
+    console.log("1 ventilator deleted");   
+    res.end("1 ventilator deleted") ;
     res.end();
         });
     });});
